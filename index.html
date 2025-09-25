@@ -1,5 +1,3 @@
-<!-- Made with ☕ and ❤️ by Satya Prakash Samal -->
-<!-- SkipFree is still in development, bugs may occur. Rest assured, we never store or track your data. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,9 +113,8 @@
         .video-wrapper {
             display: flex;
             align-items: flex-start;
-            /* CHANGE: Removed the horizontal gap to make the panels flush */
-            gap: 0;
-            max-width: 1400px; /* Increased max-width */
+            gap: 1rem; /* Default gap for PC */
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
         }
@@ -130,17 +127,16 @@
             width: 0;
             max-width: 0;
             overflow: hidden;
-            transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out; /* Re-added smooth transition */
+            height: 500px;
         }
         
         .history-sidebar.open {
             width: 350px;
             max-width: 350px;
-            /* CHANGE: Reduced padding for a more compact look */
-            padding: 0.5rem;
+            padding: 1rem;
             border-radius: 0.75rem;
             box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-            /* Removed fixed height to allow dynamic sizing */
         }
 
         .history-list {
@@ -247,7 +243,7 @@
             .video-wrapper {
                 flex-direction: column;
                 align-items: center;
-                gap: 0; /* Removing the gap between the video and sidebar on mobile */
+                gap: 2rem; /* Increased vertical gap for mobile */
             }
             .video-player {
                 width: 100%;
@@ -256,8 +252,9 @@
             .history-sidebar.open {
                 width: 100%;
                 max-width: 100%;
-                /* Height will be handled by JavaScript */
+                height: 300px;
                 padding: 1rem 0; /* Reducing padding for mobile */
+                margin-top: 1rem; /* Additional spacing on mobile */
             }
             .main-container {
                 padding-bottom: 0;
@@ -267,14 +264,19 @@
             }
         }
         
-        /* CHANGED: Added new container for centering */
-        .content-container {
+        /* PC viewport specific adjustments */
+        @media (min-width: 769px) {
+            .video-wrapper {
+                gap: 0.2rem; /* Reduced horizontal gap by 80% (from 1rem to 0.2rem) */
+            }
+        }
+        
+        .main-container {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex-grow: 1;
             justify-content: flex-start;
-            width: 100%;
         }
         
         .video-player-container {
@@ -387,9 +389,9 @@
     <!-- Header -->
     <header class="py-4 px-4 flex justify-between items-center w-full">
         <div class="flex items-center space-x-2">
-            <!-- SkipFree logo is now a link with an ID for JavaScript -->
-            <a id="logo-link" href="#" class="cursor-pointer">
-                <h1 id="logo" class="text-4xl font-extrabold tracking-tight text-red-600">SkipFree</h1>
+            <!-- SkipFree logo is now a link -->
+            <a href="." class="cursor-pointer">
+                <h1 class="text-4xl font-extrabold tracking-tight text-red-600">SkipFree</h1>
             </a>
             <!-- Added mt-1 to align it better and applied new color class -->
             <span class="beta-badge text-xs font-bold rounded-lg px-2 py-1 mt-1">BETA</span>
@@ -433,7 +435,7 @@
     </header>
     
     <!-- Main Content -->
-    <main class="content-container flex flex-col items-center justify-start">
+    <main class="main-container py-2">
         <!-- Centered title with explicit class -->
         <h2 class="text-2xl md:text-3xl font-bold mb-2 text-center">Watch YouTube Ad-Free & Tracker-Free.</h2>
         <!-- Adjusted the margin-bottom to mb-4 to create a larger gap -->
@@ -468,11 +470,9 @@
         </div>
         
         <div class="video-wrapper">
-            <!-- Video Player Container - Updated with reduced width and height -->
-            <div id="video-player-container" class="aspect-video video-player w-full max-w-4xl mx-auto rounded-xl shadow-2xl relative overflow-hidden embed-container lg:max-h-[70vh]">
-                <!-- A hidden element to watch for size changes of the parent container -->
-                <div id="iframe-container-size-watcher" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;"></div>
-
+            <!-- Video Player Container -->
+            <div id="video-player-container" class="aspect-video video-player w-full max-w-4xl mx-auto rounded-xl shadow-2xl relative overflow-hidden embed-container">
+                
                 <!-- Placeholder for no video -->
                 <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center p-4">
                     <p id="placeholder-message" class="text-sm md:text-base font-medium text-gray-500 dark:text-gray-400 text-center select-none pointer-events-none">
@@ -529,9 +529,9 @@
         </div>
     </main>
 
-    <!-- NEW FOOTER AS PER USER REQUEST -->
-    <footer class="py-2 text-center text-sm text-gray-500 dark:text-gray-400">
-        Made with ☕ and ❤️ by <a href="https://www.linkedin.com/in/satyaprakashsamal" target="_blank" class="underline hover:text-red-600 transition-colors duration-200">Satya Prakash Samal</a>
+    <!-- Footer updated as per user request -->
+    <footer class="py-4 text-center text-sm text-gray-500 dark:text-gray-400 mt-auto">
+        Made with ☕ and ❤️ by <a href="https://www.linkedin.com/in/satyaprakashsamal" target="_blank" class="underline hover:text-blue-500 transition-colors duration-200">Satya Prakash Samal</a>
     </footer>
 
     <script>
@@ -557,15 +557,11 @@
             const notificationCloseBtn = document.getElementById('notification-close');
             const pasteButton = document.getElementById('paste-button');
             const searchInput = document.getElementById('search-input');
-            const videoPlayerContainer = document.getElementById('video-player-container');
-            const iframeContainerSizeWatcher = document.getElementById('iframe-container-size-watcher');
-
+            
             // New PrivBlocker elements
             const privBlockerContainer = document.getElementById('priv-blocker-container');
             const lockEmoji = document.getElementById('lock-emoji');
             const blockText = document.getElementById('block-text');
-            // Logo Link for page refresh
-            const logoLink = document.getElementById('logo-link');
 
             const VIDEO_HISTORY_KEY = 'videoHistory';
             const SAVE_PREFERENCE_KEY = 'saveHistoryPreference';
@@ -602,14 +598,6 @@
                 } else {
                     setTheme('dark-theme');
                 }
-            });
-
-            // --- Logo click event listener to force page refresh ---
-            logoLink.addEventListener('click', (event) => {
-                // Prevent the default link behavior
-                event.preventDefault();
-                // Force a page reload
-                window.location.reload();
             });
 
             // --- Function to format time difference ---
@@ -669,7 +657,7 @@
                     }
                 } else {
                     historyMessage.classList.remove('hidden');
-                    historyMessage.textContent = 'Please turn on “Save Memory.” All memories are stored locally and kept private.';
+                    historyMessage.textContent = 'Please turn on "Save Memory." All memories are stored locally and kept private.';
                     // Hide button if history saving is off
                     clearHistoryButton.classList.add('hidden');
                 }
@@ -723,14 +711,13 @@
 
             // --- Bookmark toggle listener ---
             bookmarkToggle.addEventListener('click', () => {
-                // Check if the user is on a Mac or iOS device
-                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-                const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-                if (isMac || isiOS) {
-                    showNotification('Tap ⭐ in your browser menu to bookmark, thank you!', 'bg-green-500');
+                // Check if the user is on a mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    showNotification('Tap ⋮ (3 dots) → ⭐ Add to Bookmarks, thank you!', 'bg-green-500');
                 } else {
-                    // Assume PC or Android otherwise
+                    // Assume PC otherwise
                     showNotification('Hit Ctrl+D / Cmd+D to bookmark, thank you!', 'bg-green-500');
                 }
             });
@@ -749,13 +736,6 @@
             // --- History toggle listener ---
             historyToggle.addEventListener('click', () => {
                 historySidebar.classList.toggle('open');
-                // CHANGED: Added logic to set the history sidebar height to match the video container's height
-                if (historySidebar.classList.contains('open')) {
-                    const videoHeight = videoPlayerContainer.offsetHeight;
-                    historySidebar.style.height = `${videoHeight}px`;
-                } else {
-                    historySidebar.style.height = '';
-                }
             });
             
             // --- Save History Toggle Listener ---
@@ -846,7 +826,7 @@
                     return data.title || `Untitled Video ${videoId}`;
                 } catch (error) {
                     console.error('Failed to fetch video title:', error);
-                    return `Untitled Video (Network Error)`;
+                    return `Untitled Video ${videoId}`;
                 }
             }
             
@@ -919,52 +899,29 @@
                 // Reset to initial state
                 clearInterval(animationInterval);
                 currentCount = 0;
-                // Generate a new, randomized final count for each video
-                finalCount = Math.floor(Math.random() * 20) + 1;
-                setInitialPrivacyBarState();
+                // Generate a new, randomized final count for each animation
+                finalCount = Math.floor(Math.random() * 5) + 6; // Random between 6 and 10
                 
-                // Start animation
                 lockEmoji.classList.add('pulsate');
+                blockText.textContent = 'PrivBlocker is scanning...';
+                
+                // Start the count animation
                 animationInterval = setInterval(() => {
-                    if (currentCount < finalCount) {
-                        // Increase the count by a random number to make it gradual
-                        currentCount = Math.min(finalCount, currentCount + Math.floor(Math.random() * 3) + 1);
-                        blockText.innerHTML = `Ads & Trackers Blocked: <span class="text-green-500 font-bold">${currentCount}</span>`;
+                    currentCount++;
+                    if (currentCount <= finalCount) {
+                        blockText.textContent = `PrivBlocker blocked ${currentCount} trackers...`;
                     } else {
                         clearInterval(animationInterval);
                         lockEmoji.classList.remove('pulsate');
-                        // Show the final, randomized number or ':20+'
-                        blockText.innerHTML = `Ads & Trackers Blocked: <span class="text-green-500 font-bold">${finalCount > 20 ? '20+' : finalCount}</span>`;
+                        blockText.textContent = `PrivBlocker blocked ${finalCount} trackers!`;
+                        
+                        // Reset after a delay
+                        setTimeout(() => {
+                            blockText.textContent = 'See PrivBlocker in action, paste a YouTube link.';
+                        }, 5000);
                     }
-                }, 100);
+                }, 200); // Update every 200ms for a smooth animation
             }
-
-            // Function to set the privacy bar to its initial state
-            function setInitialPrivacyBarState() {
-                clearInterval(animationInterval);
-                blockText.innerHTML = 'See PrivBlocker in action, paste a YouTube link.';
-                lockEmoji.classList.remove('pulsate');
-            }
-
-            // Initial state of the privacy bar on page load
-            setInitialPrivacyBarState();
-
-            // --- Observer to sync history sidebar size with video player container ---
-            // CHANGED: Removed ResizeObserver logic as it is no longer needed.
-            
-            // Add a click listener to the history toggle to re-sync size when it opens
-            // This is now the only place where the height is set.
-            historyToggle.addEventListener('click', () => {
-                // Wait for the CSS transition to potentially happen
-                setTimeout(() => {
-                     if (historySidebar.classList.contains('open')) {
-                        const videoHeight = videoPlayerContainer.offsetHeight;
-                        historySidebar.style.height = `${videoHeight}px`;
-                     } else {
-                        historySidebar.style.height = '';
-                     }
-                }, 300); // Small delay to account for CSS transition
-            });
         });
     </script>
 </body>
