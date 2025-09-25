@@ -891,38 +891,44 @@
             }
             
             // --- PrivBlocker Animation Logic ---
-            let animationInterval = null;
-            let currentCount = 0;
-            let finalCount = 0;
-            
             function animatePrivacyBar() {
-                // Reset to initial state
-                clearInterval(animationInterval);
-                currentCount = 0;
-                // Generate a new, randomized final count for each animation
-                finalCount = Math.floor(Math.random() * 5) + 6; // Random between 6 and 10
+                // Determine the final count and display value
+                const is20Plus = Math.random() < 0.25; // 25% chance to show '20+'
+                const targetCount = is20Plus ? 20 : Math.floor(Math.random() * 21); // Random number between 0 and 20
+                const finalDisplayCount = is20Plus ? "20+" : targetCount.toString();
                 
+                let currentCount = 0;
+
+                // Make the emoji pulsate during the scan
                 lockEmoji.classList.add('pulsate');
-                blockText.textContent = 'PrivBlocker is scanning...';
                 
-                // Start the count animation
-                animationInterval = setInterval(() => {
-                    currentCount++;
-                    if (currentCount <= finalCount) {
-                        blockText.textContent = `PrivBlocker blocked ${currentCount} trackers...`;
+                function counter() {
+                    // Use a random increment to make the counting feel more dynamic
+                    const increment = Math.floor(Math.random() * 3) + 1;
+                    currentCount = Math.min(currentCount + increment, targetCount);
+                    
+                    // Update the text during the count-up animation
+                    blockText.innerHTML = `Blocking Ads & Trackers: <span style="color: #2EFF2E; font-weight: bold;">${currentCount}</span>`;
+
+                    if (currentCount < targetCount) {
+                        // Continue counting with a random delay for a more natural feel
+                        setTimeout(counter, Math.random() * 150 + 50);
                     } else {
-                        clearInterval(animationInterval);
+                        // Animation finished, stop the pulsation
                         lockEmoji.classList.remove('pulsate');
-                        blockText.textContent = `PrivBlocker blocked ${finalCount} trackers!`;
-                        
-                        // Reset after a delay
-                        setTimeout(() => {
-                            blockText.textContent = 'See PrivBlocker in action, paste a YouTube link.';
-                        }, 5000);
+                        // Set the final, persistent text
+                        blockText.innerHTML = `Ads & Trackers Blocked: <span style="color: #2EFF2E; font-weight: bold;">${finalDisplayCount}</span>`;
                     }
-                }, 200); // Update every 200ms for a smooth animation
+                }
+
+                // Set an initial message before starting the count
+                blockText.textContent = 'Scanning for Ads & Trackers...';
+
+                // Start the animation after a brief delay to allow the user to read the initial message
+                setTimeout(counter, 300);
             }
         });
     </script>
 </body>
 </html>
+
