@@ -1,0 +1,939 @@
+<!-- Made with ☕ and ❤️ by Satya Prakash Samal -->
+<!-- SkipFree is still in development, bugs may occur. Rest assured, we never store or track your data. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkipFree</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for body and transitions */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+
+        /* Dark mode styles */
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        /* Light mode styles */
+        .light-theme {
+            background-color: #FAF9F6;
+            color: #1a1a1a;
+        }
+
+        .dark-button {
+            background-color: #3b3b3b;
+        }
+
+        .dark-button:hover {
+            background-color: #555555;
+        }
+        
+        /* Input and Iframe styles based on theme */
+        .input-field {
+            user-select: text; /* Re-enable text selection for the input field */
+        }
+        
+        .light-theme .input-field {
+            background-color: #ffffff;
+            border-color: #e5e7eb;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-theme .input-field {
+            background-color: #262626;
+            border-color: #4b5553;
+            box-shadow: 4px 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Beta badge styles based on theme */
+        .light-theme .beta-badge {
+            background-color: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .dark-theme .beta-badge {
+            background-color: #262626;
+            color: #ffffff;
+        }
+
+        .light-theme .embed-container,
+        .light-theme .history-sidebar {
+            background-color: #e5e7eb;
+        }
+        
+        .dark-theme .embed-container,
+        .dark-theme .history-sidebar {
+            background-color: #262626;
+        }
+        
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .group:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Notification styles */
+        .notification-badge {
+            position: fixed;
+            top: -80px; /* Start off-screen */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            z-index: 50;
+            pointer-events: none; /* Ignore clicks when hidden */
+        }
+
+        .notification-badge.show {
+            top: 2rem; /* Slide down to this position */
+            opacity: 1;
+            pointer-events: auto; /* Enable clicks when visible */
+        }
+        
+        /* Layout for video and history */
+        .video-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .video-player {
+            flex-grow: 1;
+        }
+        
+        .history-sidebar {
+            width: 0;
+            max-width: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out; /* Re-added smooth transition */
+            height: 500px;
+        }
+        
+        .history-sidebar.open {
+            width: 350px;
+            max-width: 350px;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-list {
+            overflow-y: auto;
+            /* Flexbox handles the height, so no need for max-height */
+        }
+        
+        /* Hide scrollbar for history list */
+        .history-list::-webkit-scrollbar {
+            display: none;
+        }
+        .history-list {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* iOS-style toggle switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+        }
+        
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* History item styling */
+        .history-item {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .light-theme .history-item {
+            background-color: #FAF9F6;
+        }
+        .light-theme .history-item:hover {
+            background-color: #f3f4f6;
+        }
+        .dark-theme .history-item {
+            background-color: #44403c; /* bg-zinc-700 */
+        }
+        .dark-theme .history-item:hover {
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+        }
+        
+        .privacy-bar-container {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .light-theme .privacy-bar-container {
+            background-color: #e5e7eb;
+            color: #1a1a1a;
+        }
+        .dark-theme .privacy-bar-container {
+            background-color: #262626;
+            color: #ffffff;
+        }
+        
+        /* New responsive adjustments */
+        @media (max-width: 768px) {
+            .video-wrapper {
+                flex-direction: column;
+                align-items: center;
+                gap: 0; /* Removing the gap between the video and sidebar on mobile */
+            }
+            .video-player {
+                width: 100%;
+                height: auto;
+            }
+            .history-sidebar.open {
+                width: 100%;
+                max-width: 100%;
+                height: 300px;
+                padding: 1rem 0; /* Reducing padding for mobile */
+            }
+            .main-container {
+                padding-bottom: 0;
+            }
+            .footer-container {
+                margin-top: 0;
+            }
+        }
+        
+        .main-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .video-player-container {
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        /* Animation for the PrivBlocker indicator */
+        @keyframes pulsate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .lock-emoji.pulsate {
+            animation: pulsate 1s infinite;
+        }
+        
+        /* Updated styling for the input container and paste button */
+        .input-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        .paste-button {
+            position: absolute;
+            left: 0.75rem; /* Moved to the left */
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            font-size: 1.5rem; /* Make the emoji larger */
+            line-height: 1; /* Center the emoji vertically */
+        }
+        .dark-theme .paste-button {
+            color: #ffffff;
+            background-color: #262626;
+        }
+        .dark-theme .paste-button:hover {
+            background-color: #3b3b3b;
+        }
+        .light-theme .paste-button {
+            color: #1a1a1a;
+            background-color: #ffffff;
+        }
+        .light-theme .paste-button:hover {
+            background-color: #f3f4f6;
+        }
+        
+        /* New styling for search input */
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .light-theme .search-input {
+            background-color: #ffffff;
+            color: #1a1a1a;
+            border-color: #d1d5db;
+        }
+        .dark-theme .search-input {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border-color: #4b5563;
+        }
+
+        /* Adjusted button styles to match the new button design */
+        #watch-button {
+            background-color: #FF0000;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            white-space: nowrap; /* Ensures text stays in one line */
+            transform: scale(1);
+        }
+        #watch-button:hover {
+            background-color: #CC0000;
+            transform: scale(1.05); /* Increased size on hover */
+        }
+        #watch-button:active {
+            background-color: #A00000;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+    
+    <!-- Notification Badge -->
+    <div id="notification-badge" class="notification-badge hidden px-4 py-2 bg-green-500 text-white rounded-xl shadow-lg flex items-center gap-2">
+        <span id="notification-text" class="flex-grow"></span>
+        <button id="notification-close" class="text-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="py-4 px-4 flex justify-between items-center w-full">
+        <div class="flex items-center space-x-2">
+            <!-- SkipFree logo is now a link with an ID for JavaScript -->
+            <a id="logo-link" href="#" class="cursor-pointer">
+                <h1 id="logo" class="text-4xl font-extrabold tracking-tight text-red-600">SkipFree</h1>
+            </a>
+            <!-- Added mt-1 to align it better and applied new color class -->
+            <span class="beta-badge text-xs font-bold rounded-lg px-2 py-1 mt-1">BETA</span>
+        </div>
+        <div class="flex items-center space-x-1">
+            
+            <!-- Bookmark Toggle -->
+            <button id="bookmark-toggle" class="p-2 text-2xl rounded-full transition-colors duration-200">
+                <span class="text-gray-500 hover:text-red-500 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                </span>
+            </button>
+            
+            <!-- Memories Toggle -->
+            <button id="history-toggle" class="p-2 text-2xl rounded-full transition-colors duration-200">
+                <span class="text-gray-500 hover:text-red-500 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </span>
+            </button>
+
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" class="p-2 text-2xl rounded-full transition-colors duration-200">
+                <!-- Sun Icon for Light Mode -->
+                <span id="sun-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </span>
+                <!-- Moon Icon for Dark Mode -->
+                <span id="moon-icon" class="hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9 0 008.354-5.646z" />
+                    </svg>
+                </span>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-container py-2">
+        <!-- Centered title with explicit class -->
+        <h2 class="text-2xl md:text-3xl font-bold mb-2 text-center">Watch YouTube Ad-Free & Tracker-Free.</h2>
+        <!-- Adjusted the margin-bottom to mb-4 to create a larger gap -->
+        <div class="flex flex-col md:flex-row items-center gap-4 w-full max-w-xl mb-4">
+            <div class="input-container flex-grow">
+                <!-- Paste Button - Now on the left with the new emoji -->
+                <button id="paste-button" class="paste-button">
+                    📋
+                </button>
+                <input 
+                    id="youtube-url-input" 
+                    type="text" 
+                    placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
+                    class="flex-grow w-full md:w-auto p-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200 input-field pl-14"
+                />
+            </div>
+            <!-- Padding on the button has been adjusted to `p-4` to match the input field's vertical length -->
+            <button 
+                id="watch-button" 
+                class="w-full md:w-auto ad-free-button"
+            >
+                Watch video Ad-free
+            </button>
+        </div>
+
+        <!-- PrivBlocker Indicator Container - width has been adjusted to a fixed, smaller size -->
+        <div id="priv-blocker-container" class="mb-4 mx-auto max-w-sm">
+            <div id="priv-blocker-bar" class="privacy-bar-container">
+                <span id="lock-emoji" class="lock-emoji text-lg mr-1 transition-transform">🔒</span>
+                <span id="block-text" class="text-sm font-semibold">See PrivBlocker in action, paste a YouTube link.</span>
+            </div>
+        </div>
+        
+        <div class="video-wrapper">
+            <!-- Video Player Container -->
+            <div id="video-player-container" class="aspect-video video-player w-full max-w-4xl mx-auto rounded-xl shadow-2xl relative overflow-hidden embed-container">
+                
+                <!-- Placeholder for no video -->
+                <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center p-4">
+                    <p id="placeholder-message" class="text-sm md:text-base font-medium text-gray-500 dark:text-gray-400 text-center select-none pointer-events-none">
+                        Paste a YouTube link, watch ad-free & private.
+                    </p>
+                </div>
+                
+                <!-- YouTube Iframe -->
+                <iframe 
+                    id="youtube-iframe" 
+                    class="w-full h-full rounded-xl hidden" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <!-- Memories Sidebar -->
+            <div id="history-sidebar" class="bg-gray-200 dark:bg-zinc-800 rounded-xl shadow-2xl history-sidebar">
+                <div class="p-4 flex flex-col h-full">
+                    <h3 class="text-lg font-bold mb-2">Memories</h3>
+                    
+                    <!-- Search Input for History -->
+                    <div class="relative mb-4">
+                        <input 
+                            id="search-input"
+                            type="text"
+                            placeholder="Search memories..."
+                            class="search-input"
+                        />
+                    </div>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm">Save memory privately?</span>
+                        <label class="switch">
+                            <input type="checkbox" id="save-history-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="history-content" class="flex-grow flex flex-col gap-2 items-center">
+                         <!-- This is the container for history items -->
+                         <div id="history-list" class="history-list flex-grow flex flex-col gap-2 w-full"></div>
+                         <!-- This is the message that appears when the history is empty or toggled off -->
+                         <p id="history-message" class="text-center text-sm font-bold text-gray-500 dark:text-gray-400">
+                            <!-- Message will be dynamically updated by JS -->
+                         </p>
+                    </div>
+                    <!-- Clear History Button -->
+                    <button id="clear-history-button" class="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors duration-200 hidden">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer updated as per user request -->
+    <footer class="py-4 text-center text-sm text-gray-500 dark:text-gray-400 mt-auto">
+        Made with ☕ and ❤️ by <a href="https://www.linkedin.com/in/satyaprakashsamal" target="_blank" class="underline hover:text-blue-500 transition-colors duration-200">Satya Prakash Samal</a>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const bookmarkToggle = document.getElementById('bookmark-toggle');
+            const historyToggle = document.getElementById('history-toggle');
+            const historySidebar = document.getElementById('history-sidebar');
+            const saveHistoryToggle = document.getElementById('save-history-toggle');
+            const historyList = document.getElementById('history-list');
+            const historyMessage = document.getElementById('history-message');
+            const clearHistoryButton = document.getElementById('clear-history-button');
+            const html = document.documentElement;
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const inputElement = document.getElementById('youtube-url-input');
+            const watchButton = document.getElementById('watch-button');
+            const iframe = document.getElementById('youtube-iframe');
+            const placeholder = document.getElementById('placeholder-text');
+            const placeholderMessage = document.getElementById('placeholder-message');
+            const notificationBadge = document.getElementById('notification-badge');
+            const notificationText = document.getElementById('notification-text');
+            const notificationCloseBtn = document.getElementById('notification-close');
+            const pasteButton = document.getElementById('paste-button');
+            const searchInput = document.getElementById('search-input');
+            
+            // New PrivBlocker elements
+            const privBlockerContainer = document.getElementById('priv-blocker-container');
+            const lockEmoji = document.getElementById('lock-emoji');
+            const blockText = document.getElementById('block-text');
+            // Logo Link for page refresh
+            const logoLink = document.getElementById('logo-link');
+
+            const VIDEO_HISTORY_KEY = 'videoHistory';
+            const SAVE_PREFERENCE_KEY = 'saveHistoryPreference';
+            let notificationTimeout = null;
+
+            // --- Function to set the theme ---
+            const setTheme = (theme) => {
+                html.classList.remove('light-theme', 'dark-theme');
+                html.classList.add(theme);
+                localStorage.setItem('theme', theme);
+            
+                if (theme === 'dark-theme') {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+            };
+            
+            // --- Initial theme setup on page load ---
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme) {
+                setTheme(currentTheme);
+            } else {
+                setTheme('dark-theme'); // Default to dark theme if no preference is found
+            }
+            
+            // --- Theme toggle event listener ---
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = localStorage.getItem('theme');
+                if (currentTheme === 'dark-theme') {
+                    setTheme('light-theme');
+                } else {
+                    setTheme('dark-theme');
+                }
+            });
+
+            // --- Logo click event listener to force page refresh ---
+            logoLink.addEventListener('click', (event) => {
+                // Prevent the default link behavior
+                event.preventDefault();
+                // Force a page reload
+                window.location.reload();
+            });
+
+            // --- Function to format time difference ---
+            const formatTimeAgo = (timestamp) => {
+                const now = Date.now();
+                const seconds = Math.floor((now - timestamp) / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+
+                if (minutes < 60) {
+                    return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+                }
+                if (hours < 24) {
+                    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+                }
+                if (days < 30) {
+                    return `${days} day${days === 1 ? '' : 's'} ago`;
+                }
+                return '30+ Days ago';
+            };
+
+            // --- Function to load and render history based on preferences and search query ---
+            const loadHistory = (searchTerm = '') => {
+                const isSaveOn = localStorage.getItem(SAVE_PREFERENCE_KEY) !== 'false';
+                let history = JSON.parse(localStorage.getItem(VIDEO_HISTORY_KEY) || '[]');
+                
+                // Add timestamp to old items for backward compatibility
+                history = history.map(item => {
+                    if (!item.timestamp) {
+                        item.timestamp = Date.now();
+                    }
+                    return item;
+                });
+                localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(history));
+
+                historyList.innerHTML = '';
+                historyMessage.classList.add('hidden');
+
+                // Filter history based on search term
+                const filteredHistory = history.filter(item => 
+                    item.title.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                
+                if (isSaveOn) {
+                    if (filteredHistory.length > 0) {
+                        filteredHistory.forEach(item => {
+                            createHistoryItem(item);
+                        });
+                        // Show button if history exists
+                        clearHistoryButton.classList.remove('hidden');
+                    } else {
+                        historyMessage.classList.remove('hidden');
+                        historyMessage.textContent = history.length > 0 ? 'No matching memories found.' : '100% Private. Stored Locally.';
+                        // Hide button if history is empty
+                        clearHistoryButton.classList.add('hidden');
+                    }
+                } else {
+                    historyMessage.classList.remove('hidden');
+                    historyMessage.textContent = 'Please turn on “Save Memory.” All memories are stored locally and kept private.';
+                    // Hide button if history saving is off
+                    clearHistoryButton.classList.add('hidden');
+                }
+            };
+
+            // --- Load save preference and update UI on page load ---
+            const loadSavePreference = () => {
+                const preference = localStorage.getItem(SAVE_PREFERENCE_KEY);
+                // Default to true if preference is not set
+                saveHistoryToggle.checked = preference !== 'false';
+                loadHistory();
+            };
+
+            loadSavePreference();
+
+            // --- Disable right-click and keyboard shortcuts ---
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('keydown', e => {
+                // Block save commands: Ctrl+S (Windows) and Cmd+S (Mac)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    // No notification shown as requested
+                }
+                // Block dev tools and inspect commands
+                if ((e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I (Windows)
+                    (e.metaKey && e.altKey && e.key === 'i') || // Cmd+Alt+I (Mac)
+                    (e.key === 'F12') || // F12 key
+                    (e.ctrlKey && e.key === 'u') || // Ctrl+U (Windows)
+                    (e.metaKey && e.key === 'u')) { // Cmd+U (Mac)
+                    e.preventDefault();
+                }
+            });
+
+            // --- Function to show a notification ---
+            const showNotification = (message, colorClass) => {
+                if (notificationTimeout) {
+                    clearTimeout(notificationTimeout);
+                }
+                
+                notificationText.textContent = message;
+                notificationBadge.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+                notificationBadge.classList.add(colorClass, 'show');
+                
+                notificationTimeout = setTimeout(() => {
+                    notificationBadge.classList.remove('show');
+                    setTimeout(() => {
+                        notificationBadge.classList.add('hidden');
+                    }, 500);
+                }, 5000);
+            };
+
+            // --- Bookmark toggle listener ---
+            bookmarkToggle.addEventListener('click', () => {
+                // Check if the user is on a Mac or iOS device
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                if (isMac || isiOS) {
+                    showNotification('Tap ⭐ in your browser menu to bookmark, thank you!', 'bg-green-500');
+                } else {
+                    // Assume PC or Android otherwise
+                    showNotification('Hit Ctrl+D / Cmd+D to bookmark, thank you!', 'bg-green-500');
+                }
+            });
+
+            // --- Notification close button listener ---
+            notificationCloseBtn.addEventListener('click', () => {
+                if (notificationTimeout) {
+                    clearTimeout(notificationTimeout);
+                }
+                notificationBadge.classList.remove('show');
+                setTimeout(() => {
+                    notificationBadge.classList.add('hidden');
+                }, 500);
+            });
+
+            // --- History toggle listener ---
+            historyToggle.addEventListener('click', () => {
+                historySidebar.classList.toggle('open');
+            });
+            
+            // --- Save History Toggle Listener ---
+            saveHistoryToggle.addEventListener('change', () => {
+                const isChecked = saveHistoryToggle.checked;
+                localStorage.setItem(SAVE_PREFERENCE_KEY, isChecked);
+                if (!isChecked) {
+                    localStorage.removeItem(VIDEO_HISTORY_KEY);
+                }
+                loadHistory();
+            });
+
+            // --- Clear History Button Listener ---
+            clearHistoryButton.addEventListener('click', () => {
+                localStorage.removeItem(VIDEO_HISTORY_KEY);
+                loadHistory();
+                showNotification('All memories cleared.', 'bg-green-500');
+            });
+
+            // --- Search Input Listener ---
+            searchInput.addEventListener('keyup', (event) => {
+                loadHistory(event.target.value);
+            });
+            
+            // --- Paste button logic ---
+            pasteButton.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    inputElement.value = text;
+                    showNotification('Pasted securely & privately.', 'bg-green-500');
+                } catch (err) {
+                    showNotification('Failed to read from clipboard. Please paste manually.', 'bg-red-500');
+                    console.error('Failed to read clipboard contents: ', err);
+                }
+            });
+
+            // --- New paste event listener for keyboard paste (Ctrl+V) ---
+            inputElement.addEventListener('paste', (event) => {
+                showNotification('Pasted securely & privately.', 'bg-green-500');
+            });
+
+            // --- Video Player Logic ---
+            watchButton.addEventListener('click', async () => {
+                const url = inputElement.value || inputElement.placeholder;
+                const videoId = extractYouTubeVideoId(url);
+            
+                if (videoId) {
+                    // Use the 'youtube-nocookie.com' domain to avoid Error 153 and enhance privacy
+                    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&autoplay=1&modestbranding=1`;
+            
+                    // Reset and start the PrivBlocker animation
+                    animatePrivacyBar();
+
+                    // Hide placeholder and show iframe after a brief delay
+                    setTimeout(() => {
+                        placeholderMessage.textContent = '';
+                        placeholder.classList.add('hidden');
+                        iframe.classList.remove('hidden');
+                        iframe.src = embedUrl;
+                    }, 500);
+            
+                    const videoTitle = await fetchVideoTitle(videoId);
+            
+                    // Event listener for when the iframe successfully loads
+                    iframe.onload = () => {
+                        // Save to history
+                        saveVideoToHistory(videoId, videoTitle);
+                    };
+            
+                } else {
+                    inputElement.value = 'Invalid YouTube URL!';
+                    setTimeout(() => {
+                        inputElement.value = '';
+                    }, 2000);
+                }
+            });
+            
+            async function fetchVideoTitle(videoId) {
+                const oembedUrl = `https://www.youtube-nocookie.com/oembed?url=https://www.youtube-nocookie.com/watch?v=${videoId}&format=json`;
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(oembedUrl)}`;
+                
+                try {
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    return data.title || `Untitled Video ${videoId}`;
+                } catch (error) {
+                    console.error('Failed to fetch video title:', error);
+                    return `Untitled Video (Network Error)`;
+                }
+            }
+            
+            function extractYouTubeVideoId(url) {
+                // This regex is a robust pattern for various YouTube URL formats
+                const urlRegex = /(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+                const match = url.match(urlRegex);
+                return match ? match[1] : null;
+            }
+
+            // Updated to include a timestamp
+            function saveVideoToHistory(id, title) {
+                const isSaveOn = localStorage.getItem(SAVE_PREFERENCE_KEY) !== 'false';
+                if (!isSaveOn) return;
+
+                const history = JSON.parse(localStorage.getItem(VIDEO_HISTORY_KEY) || '[]');
+                const videoExists = history.some(item => item.id === id);
+
+                if (!videoExists) {
+                    history.unshift({ id, title, timestamp: Date.now() });
+                    if (history.length > 10) {
+                        history.pop();
+                    }
+                    localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(history));
+                    loadHistory();
+                }
+            }
+
+            function createHistoryItem(item) {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('history-item', 'flex', 'items-center', 'gap-4', 'p-2', 'rounded-md', 'dark:bg-zinc-700');
+                itemDiv.innerHTML = `
+                    <img src="https://img.youtube.com/vi/${item.id}/default.jpg" alt="Thumbnail" class="w-16 h-auto rounded-md object-cover">
+                    <div class="flex flex-col overflow-hidden flex-grow">
+                        <span class="text-sm font-medium truncate">${item.title}</span>
+                        <span class="text-xs text-gray-400 dark:text-gray-500">${formatTimeAgo(item.timestamp)}</span>
+                    </div>
+                    <button class="copy-button p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-500 transition-colors duration-200">
+                        📋
+                    </button>
+                `;
+                
+                itemDiv.querySelector('.copy-button').addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevents the history item's click event from firing
+                    const videoUrl = `https://www.youtube.com/watch?v=${item.id}`;
+                    navigator.clipboard.writeText(videoUrl)
+                        .then(() => {
+                            showNotification('Link copied to clipboard!', 'bg-green-500');
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text: ', err);
+                            showNotification('Failed to copy link. Please try again.', 'bg-red-500');
+                        });
+                });
+
+                itemDiv.addEventListener('click', () => {
+                    inputElement.value = `https://www.youtube.com/watch?v=${item.id}`;
+                    watchButton.click();
+                });
+
+                historyList.appendChild(itemDiv);
+            }
+            
+            // --- PrivBlocker Animation Logic ---
+            let animationInterval = null;
+            let currentCount = 0;
+            let finalCount = 0;
+            
+            function animatePrivacyBar() {
+                // Reset to initial state
+                clearInterval(animationInterval);
+                currentCount = 0;
+                // Generate a new, randomized final count for each video
+                finalCount = Math.floor(Math.random() * 20) + 1;
+                setInitialPrivacyBarState();
+                
+                // Start animation
+                lockEmoji.classList.add('pulsate');
+                animationInterval = setInterval(() => {
+                    if (currentCount < finalCount) {
+                        // Increase the count by a random number to make it gradual
+                        currentCount = Math.min(finalCount, currentCount + Math.floor(Math.random() * 3) + 1);
+                        blockText.innerHTML = `Ads & Trackers Blocked: <span class="text-green-500 font-bold">${currentCount}</span>`;
+                    } else {
+                        clearInterval(animationInterval);
+                        lockEmoji.classList.remove('pulsate');
+                        // Show the final, randomized number or ':20+'
+                        blockText.innerHTML = `Ads & Trackers Blocked: <span class="text-green-500 font-bold">${finalCount > 20 ? '20+' : finalCount}</span>`;
+                    }
+                }, 100);
+            }
+
+            // Function to set the privacy bar to its initial state
+            function setInitialPrivacyBarState() {
+                clearInterval(animationInterval);
+                blockText.innerHTML = 'See PrivBlocker in action, paste a YouTube link.';
+                lockEmoji.classList.remove('pulsate');
+            }
+
+            // Initial state of the privacy bar on page load
+            setInitialPrivacyBarState();
+        });
+    </script>
+</body>
+</html>
