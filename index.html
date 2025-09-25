@@ -115,8 +115,9 @@
         .video-wrapper {
             display: flex;
             align-items: flex-start;
-            gap: 1rem;
-            max-width: 1200px;
+            /* CHANGE: Removed the horizontal gap to make the panels flush */
+            gap: 0;
+            max-width: 1400px; /* Increased max-width */
             width: 100%;
             margin: 0 auto;
         }
@@ -129,16 +130,17 @@
             width: 0;
             max-width: 0;
             overflow: hidden;
-            transition: all 0.3s ease-in-out; /* Re-added smooth transition */
-            height: 500px;
+            transition: all 0.3s ease-in-out;
         }
         
         .history-sidebar.open {
             width: 350px;
             max-width: 350px;
-            padding: 1rem;
+            /* CHANGE: Reduced padding for a more compact look */
+            padding: 0.5rem;
             border-radius: 0.75rem;
             box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+            /* Removed fixed height to allow dynamic sizing */
         }
 
         .history-list {
@@ -254,7 +256,7 @@
             .history-sidebar.open {
                 width: 100%;
                 max-width: 100%;
-                height: 300px;
+                /* Height will be handled by JavaScript */
                 padding: 1rem 0; /* Reducing padding for mobile */
             }
             .main-container {
@@ -265,12 +267,14 @@
             }
         }
         
-        .main-container {
-            flex-grow: 1;
+        /* CHANGED: Added new container for centering */
+        .content-container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            flex-grow: 1;
             justify-content: flex-start;
+            width: 100%;
         }
         
         .video-player-container {
@@ -421,7 +425,7 @@
                 <!-- Moon Icon for Dark Mode -->
                 <span id="moon-icon" class="hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9 0 008.354-5.646z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </span>
             </button>
@@ -429,7 +433,7 @@
     </header>
     
     <!-- Main Content -->
-    <main class="main-container py-2">
+    <main class="content-container flex flex-col items-center justify-start">
         <!-- Centered title with explicit class -->
         <h2 class="text-2xl md:text-3xl font-bold mb-2 text-center">Watch YouTube Ad-Free & Tracker-Free.</h2>
         <!-- Adjusted the margin-bottom to mb-4 to create a larger gap -->
@@ -464,9 +468,11 @@
         </div>
         
         <div class="video-wrapper">
-            <!-- Video Player Container -->
-            <div id="video-player-container" class="aspect-video video-player w-full max-w-4xl mx-auto rounded-xl shadow-2xl relative overflow-hidden embed-container">
-                
+            <!-- Video Player Container - Updated with reduced width and height -->
+            <div id="video-player-container" class="aspect-video video-player w-full max-w-4xl mx-auto rounded-xl shadow-2xl relative overflow-hidden embed-container lg:max-h-[70vh]">
+                <!-- A hidden element to watch for size changes of the parent container -->
+                <div id="iframe-container-size-watcher" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;"></div>
+
                 <!-- Placeholder for no video -->
                 <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center p-4">
                     <p id="placeholder-message" class="text-sm md:text-base font-medium text-gray-500 dark:text-gray-400 text-center select-none pointer-events-none">
@@ -523,9 +529,9 @@
         </div>
     </main>
 
-    <!-- Footer updated as per user request -->
-    <footer class="py-4 text-center text-sm text-gray-500 dark:text-gray-400 mt-auto">
-        Made with ☕ and ❤️ by <a href="https://www.linkedin.com/in/satyaprakashsamal" target="_blank" class="underline hover:text-blue-500 transition-colors duration-200">Satya Prakash Samal</a>
+    <!-- NEW FOOTER AS PER USER REQUEST -->
+    <footer class="py-2 text-center text-sm text-gray-500 dark:text-gray-400">
+        Made with ☕ and ❤️ by <a href="https://www.linkedin.com/in/satyaprakashsamal" target="_blank" class="underline hover:text-red-600 transition-colors duration-200">Satya Prakash Samal</a>
     </footer>
 
     <script>
@@ -551,7 +557,9 @@
             const notificationCloseBtn = document.getElementById('notification-close');
             const pasteButton = document.getElementById('paste-button');
             const searchInput = document.getElementById('search-input');
-            
+            const videoPlayerContainer = document.getElementById('video-player-container');
+            const iframeContainerSizeWatcher = document.getElementById('iframe-container-size-watcher');
+
             // New PrivBlocker elements
             const privBlockerContainer = document.getElementById('priv-blocker-container');
             const lockEmoji = document.getElementById('lock-emoji');
@@ -741,6 +749,13 @@
             // --- History toggle listener ---
             historyToggle.addEventListener('click', () => {
                 historySidebar.classList.toggle('open');
+                // CHANGED: Added logic to set the history sidebar height to match the video container's height
+                if (historySidebar.classList.contains('open')) {
+                    const videoHeight = videoPlayerContainer.offsetHeight;
+                    historySidebar.style.height = `${videoHeight}px`;
+                } else {
+                    historySidebar.style.height = '';
+                }
             });
             
             // --- Save History Toggle Listener ---
@@ -933,6 +948,23 @@
 
             // Initial state of the privacy bar on page load
             setInitialPrivacyBarState();
+
+            // --- Observer to sync history sidebar size with video player container ---
+            // CHANGED: Removed ResizeObserver logic as it is no longer needed.
+            
+            // Add a click listener to the history toggle to re-sync size when it opens
+            // This is now the only place where the height is set.
+            historyToggle.addEventListener('click', () => {
+                // Wait for the CSS transition to potentially happen
+                setTimeout(() => {
+                     if (historySidebar.classList.contains('open')) {
+                        const videoHeight = videoPlayerContainer.offsetHeight;
+                        historySidebar.style.height = `${videoHeight}px`;
+                     } else {
+                        historySidebar.style.height = '';
+                     }
+                }, 300); // Small delay to account for CSS transition
+            });
         });
     </script>
 </body>
